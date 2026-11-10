@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central de Suporte</title>
+<style>
+body {
+  background:#101827;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  padding:30px;
+}
+button {
+  padding:14px;
+  margin:8px;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+  background:#087cf5;
+  color:white;
+}
+video {
+  width:90%;
+  max-width:700px;
+  background:#000;
+  border-radius:12px;
+  margin-top:20px;
+}
+#status {color:#55d6a0}
+</style>
+</head>
+<body>
+
+<h1>Central de Suporte Remoto</h1>
+<p>Autorize os recursos necessários para iniciar
+o atendimento.</p>
+
+<button onclick="cameraMic()">
+Abrir câmera e microfone
+</button>
+
+<button onclick="shareScreen()">
+Compartilhar tela
+</button>
+
+<button onclick="stopAll()">
+Encerrar conexão
+</button>
+
+<p id="status">Aguardando autorização</p>
+
+<video id="preview" autoplay muted playsinline></video>
+
+<script>
+let mediaStream = null;
+let screenStream = null;
+
+async function cameraMic() {
+  try {
+    mediaStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+    document.getElementById("preview").srcObject =
+      mediaStream;
+
+    statusText("Câmera e microfone autorizados");
+
+  } catch (error) {
+    statusText("Acesso não autorizado: " + error.message);
+  }
+}
+
+async function shareScreen() {
+  try {
+    screenStream =
+      await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true
+      });
+
+    document.getElementById("preview").srcObject =
+      screenStream;
+
+    statusText("Compartilhamento de tela iniciado");
+
+    screenStream.getVideoTracks()[0]
+      .addEventListener("ended", () => {
+        statusText("Compartilhamento encerrado");
+      });
+
+  } catch (error) {
+    statusText("Compartilhamento cancelado");
+  }
+}
+
+function stopAll() {
+  [mediaStream, screenStream].forEach(stream => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  });
+
+  mediaStream = null;
+  screenStream = null;
+
+  document.getElementById("preview").srcObject = null;
+  statusText("Todos os acessos encerrados");
+}
+
+function statusText(message) {
+  document.getElementById("status").textContent = message;
+}
+</script>
+
+</body>
+</html>
+
